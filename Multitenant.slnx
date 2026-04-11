@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/Multitenant.Api/Multitenant.Api.csproj" />
+  <Project Path="src/Multitenant.Application/Multitenant.Application.csproj" />
+  <Project Path="src/Multitenant.Domain/Multitenant.Domain.csproj" />
+  <Project Path="src/Multitenant.Infrastructure/Multitenant.Infrastructure.csproj" />
+</Solution>
