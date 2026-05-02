@@ -2,7 +2,7 @@
 
 public class Permission : ITenantEntity
 {
-    public Guid Id { get; set; }
+    public Guid PermissionId { get; set; }
     public Guid TenantId { get; set; }
     public string? Name { get; set; }
     public string? Resource { get; set; }
