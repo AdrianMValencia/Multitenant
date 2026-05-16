@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Multitenant.Application.Multitenancy;
+using Multitenant.Application.Abstractions.Multitenancy;
 
 namespace Multitenant.Infrastructure.Multitenancy;
 

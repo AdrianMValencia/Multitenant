@@ -1,0 +1,11 @@
+﻿<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(Multitenant.Web.Client._Imports).Assembly }">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Multitenant.Web.Client.Shared.Layouts.MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(Multitenant.Web.Client.Shared.Layouts.AuthLayout)">
+            <MudText Typo="Typo.h5">Página no encontrada.</MudText>
+        </LayoutView>
+    </NotFound>
+</Router>

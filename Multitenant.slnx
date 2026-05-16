@@ -3,4 +3,6 @@
   <Project Path="src/Multitenant.Application/Multitenant.Application.csproj" />
   <Project Path="src/Multitenant.Domain/Multitenant.Domain.csproj" />
   <Project Path="src/Multitenant.Infrastructure/Multitenant.Infrastructure.csproj" />
+  <Project Path="src/Multitenant.Web/Multitenant.Web.Client/Multitenant.Web.Client.csproj" Id="326a1f0e-c57f-4ab5-95a9-783bb293cfde" />
+  <Project Path="src/Multitenant.Web/Multitenant.Web/Multitenant.Web.csproj" Id="b459ecc5-724b-4850-80e6-039e41950822" />
 </Solution>

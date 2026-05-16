@@ -1,0 +1,111 @@
+﻿@inherits LayoutComponentBase
+@rendermode InteractiveAuto
+@inject NavigationManager Navigation
+@* @inject IAuthApiService AuthService *@
+@* @inject AuthenticationStateProvider AuthStateProvider *@
+
+<MudThemeProvider Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="ToggleDrawer" />
+        <MudText Typo="Typo.h6" Class="ml-2">Multitenant ERP & CRM</MudText>
+        <MudSpacer />
+        <MudText Typo="Typo.body2" Class="mr-3">Tenant: @_tenantId</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit"
+                       OnClick="ShowLogoutConfirm" Title="Cerrar sesión" />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="DrawerVariant.Responsive"
+               ClipMode="DrawerClipMode.Always">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.subtitle1" Class="mt-2"><b>Velora</b></MudText>
+        </MudDrawerHeader>
+        <MudNavMenu>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">
+                Dashboard
+            </MudNavLink>
+            <MudNavLink Href="/customers" Icon="@Icons.Material.Filled.People">
+                Clientes
+            </MudNavLink>
+            <MudNavLink Href="/users/create" Icon="@Icons.Material.Filled.PersonAdd">
+                Crear Usuario
+            </MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-6">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@if (_showLogoutConfirm)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudPaper Class="pa-6" Style="min-width:300px;" Elevation="8">
+            <MudText Typo="Typo.h6" Class="mb-4">Cerrar sesión</MudText>
+            <MudText Class="mb-6">¿Deseas cerrar sesión?</MudText>
+            <div class="d-flex gap-3 justify-end">
+                <MudButton Variant="Variant.Text"
+                           OnClick="CancelLogout"
+                           Disabled="_loggingOut">
+                    Cancelar
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Error"
+                           @* OnClick="ConfirmLogoutAsync" *@
+                           Disabled="_loggingOut">
+                    @if (_loggingOut)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    Confirmar
+                </MudButton>
+            </div>
+        </MudPaper>
+    </MudOverlay>
+}
+
+@code {
+    private bool _drawerOpen = true;
+    private string? _tenantId;
+    private bool _showLogoutConfirm;
+    private bool _loggingOut;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = new MudBlazor.Utilities.MudColor("#1a237e"),
+            Secondary = new MudBlazor.Utilities.MudColor("#283593"),
+            AppbarBackground = new MudBlazor.Utilities.MudColor("#1a237e"),
+        }
+    };
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (!firstRender) return;
+
+    //     var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+    //     _tenantId = authState.User.FindFirst("tenant_id")?.Value ?? "—";
+    //     StateHasChanged();
+    // }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private void ShowLogoutConfirm() => _showLogoutConfirm = true;
+    private void CancelLogout() => _showLogoutConfirm = false;
+
+    // private async Task ConfirmLogoutAsync()
+    // {
+    //     _loggingOut = true;
+    //     await AuthService.LogoutAsync();
+    //     Navigation.NavigateTo("/login", forceLoad: true);
+    // }
+}

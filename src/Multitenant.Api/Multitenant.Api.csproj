@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -21,10 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Multitenant.Application\Multitenant.Application.csproj" />
     <ProjectReference Include="..\Multitenant.Infrastructure\Multitenant.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Security\" />
   </ItemGroup>
 
 </Project>

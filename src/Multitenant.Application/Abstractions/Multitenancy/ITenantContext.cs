@@ -1,4 +1,4 @@
-﻿namespace Multitenant.Application.Multitenancy;
+﻿namespace Multitenant.Application.Abstractions.Multitenancy;
 
 public interface ITenantContext
 {

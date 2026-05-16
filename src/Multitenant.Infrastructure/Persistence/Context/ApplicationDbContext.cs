@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Multitenant.Application.Multitenancy;
+using Multitenant.Application.Abstractions.Multitenancy;
 using Multitenant.Domain.Entities;
 using Npgsql;
 using System.Data;
