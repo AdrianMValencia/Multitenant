@@ -1,0 +1,16 @@
+﻿@if (Show)
+{
+    @* Overlay de carga. Show=false lo oculta. *@
+    <div class="d-flex align-center justify-center pa-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            <MudText Class="ml-4" Typo="Typo.body1">@Message</MudText>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public string? Message { get; set; }
+}

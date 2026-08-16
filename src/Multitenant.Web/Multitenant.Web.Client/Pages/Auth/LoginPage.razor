@@ -1,0 +1,163 @@
+﻿@page "/login"
+@* Pantalla pública. AuthLayout = fondo, sin menú. *@
+@layout Multitenant.Web.Client.Shared.Layouts.AuthLayout
+@inject IAuthApiService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Velora — Iniciar sesión</PageTitle>
+
+<MudCard Style="width: 420px;" Elevation="8" Class="pa-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Primary">
+                <b>Velora</b>
+            </MudText>
+            <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary" Class="mt-1">
+                ERP & CRM — Iniciar sesión
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @* Botones en vez de MudSelect: el select dentro de EditForm no cambiaba de empresa. *@
+        <MudText Typo="Typo.caption" Class="mb-2">Empresa demo</MudText>
+        <MudStack Row="true" Spacing="2" Class="mb-4">
+            <MudButton Variant="@(_selectedDemo == "acme" ? Variant.Filled : Variant.Outlined)"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       OnClick="@(() => ApplyDemoCompany("acme"))">
+                Acme Comercial
+            </MudButton>
+            <MudButton Variant="@(_selectedDemo == "norte" ? Variant.Filled : Variant.Outlined)"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       OnClick="@(() => ApplyDemoCompany("norte"))">
+                Norte
+            </MudButton>
+        </MudStack>
+
+        <EditForm Model="_model" OnValidSubmit="HandleLoginAsync" FormName="login-form">
+            <DataAnnotationsValidator />
+
+            <MudTextField @bind-Value="_model.TenantIdRaw"
+                          Label="Tenant ID"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3"
+                          HelperText="GUID de tu organización"
+                          Placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+
+            <MudTextField @bind-Value="_model.Email"
+                          Label="Correo electrónico"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3"
+                          InputType="InputType.Email" />
+
+            <MudTextField @bind-Value="_model.Password"
+                          Label="Contraseña"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-4"
+                          InputType="@_passwordInputType"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@_passwordIcon"
+                          OnAdornmentClick="TogglePasswordVisibility" />
+
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3">@_errorMessage</MudAlert>
+            }
+
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3 d-block">
+                Demo: contraseña <b>Admin123!</b>
+            </MudText>
+
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Disabled="_loading"
+                       Size="Size.Large">
+                @if (_loading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                Ingresar
+            </MudButton>
+        </EditForm>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private readonly LoginFormModel _model = new();
+    private string _selectedDemo = "acme";
+    private string? _errorMessage;
+    private bool _loading;
+    private bool _showPassword;
+    private InputType _passwordInputType = InputType.Password;
+    private string _passwordIcon = Icons.Material.Filled.VisibilityOff;
+
+    protected override void OnInitialized()
+    {
+        ApplyDemoCompany("acme");
+    }
+
+    private void ApplyDemoCompany(string key)
+    {
+        _selectedDemo = key;
+        if (key == "norte")
+        {
+            _model.TenantIdRaw = "20000000-0000-0000-0000-000000000002";
+            _model.Email = "admin@norte.local";
+            _model.Password = "Admin123!";
+            return;
+        }
+
+        _model.TenantIdRaw = "10000000-0000-0000-0000-000000000001";
+        _model.Email = "admin@acme.local";
+        _model.Password = "Admin123!";
+    }
+
+    private async Task HandleLoginAsync()
+    {
+        _errorMessage = null;
+
+        if (!Guid.TryParse(_model.TenantIdRaw, out var tenantId))
+        {
+            _errorMessage = "El Tenant ID debe ser un GUID válido.";
+            return;
+        }
+
+        _loading = true;
+        var (success, error) = await AuthService.LoginAsync(
+            new LoginRequest(tenantId, _model.Email, _model.Password));
+        _loading = false;
+
+        if (success)
+            Navigation.NavigateTo("/customers", forceLoad: false);
+        else
+            _errorMessage = error ?? "Error al iniciar sesión.";
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        _showPassword = !_showPassword;
+        _passwordInputType = _showPassword ? InputType.Text : InputType.Password;
+        _passwordIcon = _showPassword
+            ? Icons.Material.Filled.Visibility
+            : Icons.Material.Filled.VisibilityOff;
+    }
+
+    private sealed class LoginFormModel
+    {
+        [Required(ErrorMessage = "El Tenant ID es obligatorio")]
+        public string TenantIdRaw { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El correo es obligatorio")]
+        [EmailAddress(ErrorMessage = "Correo inválido")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

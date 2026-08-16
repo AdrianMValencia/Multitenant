@@ -36,6 +36,7 @@ public static class DependencyInjection
         // 4. Seguridad y RBAC (Control de Acceso Basado en Roles)
         services.AddScoped<IPermissionChecker, PermissionChecker>(); // Verifica permisos granulares
         services.AddScoped<ITenantRbacSeeder, TenantRbacSeeder>(); // Genera permisos iniciales para nuevas empresas
+        services.AddScoped<IDevelopmentDataSeeder, DevelopmentDataSeeder>(); // Datos demo de dos empresas en desarrollo
         services.AddSingleton<InMemoryRefreshTokenStore>(); // Almacenamiento seguro de sesiones persistentes
         services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>(); // Algoritmo robusto de hashing de contraseñas
         services.AddScoped<IAuthService, AuthService>(); // Lógica de expedición de tokens

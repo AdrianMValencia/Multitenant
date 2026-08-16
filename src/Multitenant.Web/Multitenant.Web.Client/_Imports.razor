@@ -1,10 +1,21 @@
-﻿@using System.Net.Http
+﻿@* Usings globales del cliente: no hace falta repetirlos en cada .razor. *@
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http
 @using System.Net.Http.Json
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
-@using static Microsoft.AspNetCore.Components.Web.RenderMode
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.JSInterop
-@using Multitenant.Web.Client
 @using MudBlazor
+@using Multitenant.Web.Client
+@using Multitenant.Web.Client.Auth
+@using Multitenant.Web.Client.Constants
+@using Multitenant.Web.Client.DTOs.Auth
+@using Multitenant.Web.Client.DTOs.Commons
+@using Multitenant.Web.Client.DTOs.Customers
+@using Multitenant.Web.Client.Services.Contracts
+@using Multitenant.Web.Client.Shared.Components
+@using static Microsoft.AspNetCore.Components.Web.RenderMode

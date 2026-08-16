@@ -62,7 +62,7 @@ namespace Multitenant.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("Multitenant.Domain.Entities.Permission", b =>
@@ -91,7 +91,7 @@ namespace Multitenant.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId", "Resource", "Action")
                         .IsUnique();
 
-                    b.ToTable("Permissions");
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("Multitenant.Domain.Entities.Role", b =>
@@ -120,7 +120,7 @@ namespace Multitenant.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("Multitenant.Domain.Entities.RolePermission", b =>
@@ -147,7 +147,7 @@ namespace Multitenant.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId", "RoleId", "PermissionId")
                         .IsUnique();
 
-                    b.ToTable("RolePermissions");
+                    b.ToTable("RolePermissions", (string)null);
                 });
 
             modelBuilder.Entity("Multitenant.Domain.Entities.Tenant", b =>
@@ -187,7 +187,7 @@ namespace Multitenant.Infrastructure.Persistence.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Tenants");
+                    b.ToTable("Tenants", (string)null);
                 });
 
             modelBuilder.Entity("Multitenant.Domain.Entities.User", b =>
@@ -227,7 +227,7 @@ namespace Multitenant.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId", "Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Multitenant.Domain.Entities.UserRole", b =>
@@ -254,7 +254,7 @@ namespace Multitenant.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId", "UserId", "RoleId")
                         .IsUnique();
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Multitenant.Domain.Entities.Customer", b =>

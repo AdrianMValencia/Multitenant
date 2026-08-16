@@ -1,0 +1,143 @@
+﻿@page "/customers"
+@inject ICustomerApiService CustomerService
+@inject IAuthApiService AuthService
+@inject ITokenStorage TokenStorage
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+@* Listado aislado por tenant: la API filtra con el JWT. *@
+
+<PageTitle>Velora — Clientes</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4">Clientes</MudText>
+
+@if (_loading)
+{
+    <LoadingOverlay Show="true" Message="Cargando clientes..." />
+}
+else
+{
+    <MudCard Elevation="2">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.subtitle1">Listado de clientes</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="OpenCreateDialog">
+                    Nuevo cliente
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-3">@_errorMessage</MudAlert>
+            }
+            <MudTable Items="_customers" Dense="true" Hover="true" Striped="true"
+                      Loading="_loading" LoadingProgressColor="Color.Primary">
+                <HeaderContent>
+                    <MudTh>Nombre</MudTh>
+                    <MudTh>Correo</MudTh>
+                    <MudTh>Estado</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Name</MudTd>
+                    <MudTd>@context.Email</MudTd>
+                    <MudTd>
+                        <MudChip T="string" Color="@GetStatusColor(context.Status)" Size="Size.Small">
+                            @context.Status
+                        </MudChip>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No hay clientes registrados.</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    private IReadOnlyCollection<CustomerItemDto> _customers = [];
+    private bool _loading = true;
+    private bool _saving;
+    private bool _showCreateForm;
+    private string? _errorMessage;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await LoadCustomersAsync();
+    }
+
+    private async Task LoadCustomersAsync()
+    {
+        _loading = true;
+        _errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var token = await WaitForTokenAsync();
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                Navigation.NavigateTo("/login", replace: true);
+                return;
+            }
+
+            var response = await CustomerService.GetCustomersAsync();
+
+            if (!response.IsSuccess && IsUnauthorized(response.Message))
+            {
+                Navigation.NavigateTo("/login", replace: true);
+                return;
+            }
+
+            if (response.IsSuccess)
+                _customers = response.Data ?? [];
+            else
+                _errorMessage = response.Message;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<string?> WaitForTokenAsync()
+    {
+        for (var i = 0; i < 10; i++)
+        {
+            var token = await TokenStorage.GetAccessTokenAsync();
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                return token;
+            }
+
+            await Task.Delay(100);
+        }
+
+        return null;
+    }
+
+    private static bool IsUnauthorized(string? message)
+        => !string.IsNullOrWhiteSpace(message)
+           && (message.Contains("401", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("Unauthorized", StringComparison.OrdinalIgnoreCase));
+
+    private void OpenCreateDialog() => _showCreateForm = true;
+
+    private static Color GetStatusColor(string? status) => status?.ToLower() switch
+    {
+        "active" or "activo" => Color.Success,
+        "inactive" or "inactivo" => Color.Error,
+        _ => Color.Default
+    };
+}

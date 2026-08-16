@@ -1,0 +1,25 @@
+﻿@page "/"
+@inject NavigationManager Navigation
+@inject ITokenStorage TokenStorage
+
+@* Dashboard: con sesión → clientes. Sin sesión → login. No borrar el token. *@
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        for (var i = 0; i < 10; i++)
+        {
+            var token = await TokenStorage.GetAccessTokenAsync();
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                Navigation.NavigateTo("/customers", replace: true);
+                return;
+            }
+
+            await Task.Delay(100);
+        }
+
+        Navigation.NavigateTo("/login", replace: true);
+    }
+}

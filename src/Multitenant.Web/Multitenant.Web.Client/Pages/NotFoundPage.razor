@@ -1,9 +1,11 @@
-﻿@page "/not-found"
-@* Página 404 del host. El botón vuelve a clientes para no pasar por / (login). *@
+@page "/{*path:nonfile}"
+@* Catch-all: URLs que no existen (ej. /users/create) se quedan en la misma app. *@
 @layout Multitenant.Web.Client.Shared.Layouts.MainLayout
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex flex-column align-center justify-center py-16">
     <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-2">404</MudText>
     <MudText Typo="Typo.h6" Class="mb-4">Página no encontrada</MudText>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/customers">Ir a clientes</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/customers">
+        Ir a clientes
+    </MudButton>
 </MudContainer>

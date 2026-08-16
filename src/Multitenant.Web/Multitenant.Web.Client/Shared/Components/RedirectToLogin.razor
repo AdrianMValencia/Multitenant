@@ -1,0 +1,15 @@
+﻿@inject NavigationManager Navigation
+
+@* Si AuthorizeView dice "no autenticado", manda a login. No reentrar si ya estás ahí. *@
+@code {
+    protected override void OnInitialized()
+    {
+        var relative = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (relative.StartsWith("login", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        Navigation.NavigateTo("/login", forceLoad: false);
+    }
+}

@@ -1,8 +1,10 @@
 ﻿@inherits LayoutComponentBase
-@rendermode InteractiveAuto
+@implements IDisposable
 @inject NavigationManager Navigation
-@* @inject IAuthApiService AuthService *@
-@* @inject AuthenticationStateProvider AuthStateProvider *@
+@inject IAuthApiService AuthService
+@inject ITokenStorage TokenStorage
+
+@* Marco de la app autenticada. No poner @rendermode aquí: Body no se puede serializar. *@
 
 <MudThemeProvider Theme="_theme" />
 <MudPopoverProvider />
@@ -17,7 +19,7 @@
         <MudSpacer />
         <MudText Typo="Typo.body2" Class="mr-3">Tenant: @_tenantId</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit"
-                       OnClick="ShowLogoutConfirm" Title="Cerrar sesión" />
+                       OnClick="ShowLogoutConfirm" aria-label="Cerrar sesión" />
     </MudAppBar>
 
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="DrawerVariant.Responsive"
@@ -59,7 +61,7 @@
                 </MudButton>
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Error"
-                           @* OnClick="ConfirmLogoutAsync" *@
+                           OnClick="ConfirmLogoutAsync"
                            Disabled="_loggingOut">
                     @if (_loggingOut)
                     {
@@ -88,24 +90,64 @@
         }
     };
 
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (!firstRender) return;
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+    }
 
-    //     var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-    //     _tenantId = authState.User.FindFirst("tenant_id")?.Value ?? "—";
-    //     StateHasChanged();
-    // }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RefreshTenantAsync(redirectIfMissing: false);
+            StateHasChanged();
+        }
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        await RefreshTenantAsync(redirectIfMissing: false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshTenantAsync(bool redirectIfMissing)
+    {
+        var token = await TokenStorage.GetAccessTokenAsync();
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            _tenantId = null;
+            if (redirectIfMissing)
+            {
+                var path = Navigation.ToBaseRelativePath(Navigation.Uri);
+                if (!path.StartsWith("login", StringComparison.OrdinalIgnoreCase))
+                {
+                    Navigation.NavigateTo("/login", replace: true);
+                }
+            }
+
+            return;
+        }
+
+        var tenantId = await TokenStorage.GetTenantIdAsync();
+        _tenantId = tenantId?.ToString()
+                    ?? JwtParser.ParseClaims(token).FirstOrDefault(x => x.Type == "tenant_id")?.Value
+                    ?? "—";
+    }
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
     private void ShowLogoutConfirm() => _showLogoutConfirm = true;
     private void CancelLogout() => _showLogoutConfirm = false;
 
-    // private async Task ConfirmLogoutAsync()
-    // {
-    //     _loggingOut = true;
-    //     await AuthService.LogoutAsync();
-    //     Navigation.NavigateTo("/login", forceLoad: true);
-    // }
+    private async Task ConfirmLogoutAsync()
+    {
+        _loggingOut = true;
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
 }

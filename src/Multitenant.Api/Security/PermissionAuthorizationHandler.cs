@@ -4,7 +4,7 @@ using Multitenant.Application.Abstractions.Security;
 namespace Multitenant.Api.Security;
 
 public class PermissionAuthorizationHandler(
- CurrentUserContext currentUserContext,
+ ICurrentUserContext currentUserContext,
  IPermissionChecker permissionChecker) : AuthorizationHandler<PermissionRequirement>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
@@ -20,3 +20,4 @@ public class PermissionAuthorizationHandler(
         }
     }
 }
+

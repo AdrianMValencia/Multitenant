@@ -1,12 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Multitenant.Application.Abstractions.Security;
+using Multitenant.Application.Abstractions.Multitenancy;
 using Multitenant.Domain.Entities;
 using Multitenant.Infrastructure.Persistence.Context;
 
 namespace Multitenant.Infrastructure.Persistence.Seeding;
 
-public class TenantRbacSeeder(ApplicationDbContext context) : ITenantRbacSeeder
+public class TenantRbacSeeder(ApplicationDbContext context, ITenantContext tenantContext) : ITenantRbacSeeder
 {
+    private readonly ApplicationDbContext _context = context;
+    private readonly ITenantContext _tenantContext = tenantContext;
+
     private static readonly (string Resource, string Action)[] DefaultPermissions =
     [
         ("customers", "read"),
@@ -21,13 +25,27 @@ public class TenantRbacSeeder(ApplicationDbContext context) : ITenantRbacSeeder
 
     public async Task SeedAsync(Guid tenantId, CancellationToken cancellationToken = default)
     {
-        var tenantExists = await context.Tenants.AnyAsync(x => x.Id == tenantId, cancellationToken);
-        if (!tenantExists)
+        // Establecer el tenant en el contexto para que las reglas de tenant se apliquen correctamente
+        _tenantContext.SetTenant(tenantId);
+
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(x => x.Id == tenantId, cancellationToken);
+        if (tenant is null)
         {
-            throw new InvalidOperationException("El tenant indicado no existe.");
+            // Crear tenant automáticamente en entorno de desarrollo para facilitar el seeding.
+            tenant = new Tenant
+            {
+                Id = tenantId,
+                Name = "Development Tenant",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Tenants.Add(tenant);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        var existingPermissions = await context.Permissions
+        var existingPermissions = await _context.Permissions
             .Where(x => x.TenantId == tenantId)
             .ToListAsync(cancellationToken);
 
@@ -38,7 +56,7 @@ public class TenantRbacSeeder(ApplicationDbContext context) : ITenantRbacSeeder
                 continue;
             }
 
-            context.Permissions.Add(new Permission
+            _context.Permissions.Add(new Permission
             {
                 PermissionId = Guid.NewGuid(),
                 TenantId = tenantId,
@@ -48,7 +66,7 @@ public class TenantRbacSeeder(ApplicationDbContext context) : ITenantRbacSeeder
             });
         }
 
-        var adminRole = await context.Roles
+        var adminRole = await _context.Roles
             .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Name == "Admin", cancellationToken);
 
         if (adminRole is null)
@@ -62,15 +80,15 @@ public class TenantRbacSeeder(ApplicationDbContext context) : ITenantRbacSeeder
                 CreatedAt = DateTime.UtcNow
             };
 
-            context.Roles.Add(adminRole);
-            await context.SaveChangesAsync(cancellationToken);
+            _context.Roles.Add(adminRole);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        var permissions = await context.Permissions
+        var permissions = await _context.Permissions
             .Where(x => x.TenantId == tenantId)
             .ToListAsync(cancellationToken);
 
-        var rolePermissionIds = await context.RolePermissions
+        var rolePermissionIds = await _context.RolePermissions
             .Where(x => x.TenantId == tenantId && x.RoleId == adminRole.Id)
             .Select(x => x.PermissionId)
             .ToListAsync(cancellationToken);
@@ -82,7 +100,7 @@ public class TenantRbacSeeder(ApplicationDbContext context) : ITenantRbacSeeder
                 continue;
             }
 
-            context.RolePermissions.Add(new RolePermission
+            _context.RolePermissions.Add(new RolePermission
             {
                 RolePermissionId = Guid.NewGuid(),
                 TenantId = tenantId,
@@ -91,6 +109,6 @@ public class TenantRbacSeeder(ApplicationDbContext context) : ITenantRbacSeeder
             });
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

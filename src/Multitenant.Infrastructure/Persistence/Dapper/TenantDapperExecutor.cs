@@ -40,7 +40,7 @@ public class TenantDapperExecutor(ApplicationDbContext context, ITenantContext t
         }
 
         // Definimos el predicado SQL para el filtrado
-        var tenantPredicate = "tenant_id = @TenantId";
+        var tenantPredicate = "\"TenantId\" = @TenantId"; // Comillas: EF creó la columna PascalCase.
         // Reemplazamos el marcador por el filtro SQL real
         var finalSql = sql.Replace("/**tenant**/", tenantPredicate, StringComparison.OrdinalIgnoreCase);
 
